@@ -37,7 +37,7 @@ echo "Waiting for service to start..."
 sleep 30
 
 # Test health endpoint
-if curl -f http://localhost:5001/health > /dev/null 2>&1; then
+if curl -f http://localhost:5001/v1/health > /dev/null 2>&1; then
     echo "✅ Health check passed!"
 else
     echo "❌ Health check failed!"

@@ -315,7 +315,7 @@ jobs:
           sleep 30
           
           # Test health endpoint
-          curl -f http://localhost:5001/health || exit 1
+          curl -f http://localhost:5001/v1/health || exit 1
           
           # Test API endpoint
           curl -f http://localhost:5001/docs || exit 1

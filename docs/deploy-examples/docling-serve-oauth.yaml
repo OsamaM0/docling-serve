@@ -91,7 +91,7 @@ spec:
               memory: 1Gi
           readinessProbe:
             httpGet:
-              path: /health
+              path: /v1/health
               port: http
               scheme: HTTPS
             initialDelaySeconds: 10
@@ -101,7 +101,7 @@ spec:
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /health
+              path: /v1/health
               port: http
               scheme: HTTPS
             initialDelaySeconds: 3
@@ -141,7 +141,7 @@ spec:
               memory: 256Mi
           readinessProbe:
             httpGet:
-              path: /oauth/healthz
+              path: /oauth/v1/healthz
               port: oauth
               scheme: HTTPS
             initialDelaySeconds: 5
@@ -151,7 +151,7 @@ spec:
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /oauth/healthz
+              path: /oauth/v1/healthz
               port: oauth
               scheme: HTTPS
             initialDelaySeconds: 30
@@ -184,7 +184,7 @@ spec:
             - '--cookie-secret=SECRET'
             - '--openshift-delegate-urls={"/": {"group":"route.openshift.io","resource":"routes","verb":"get","name":"docling-serve","namespace":"$(NAMESPACE)"}}'
             - '--openshift-sar={"namespace":"$(NAMESPACE)","resource":"routes","resourceName":"docling-serve","verb":"get","resourceAPIGroup":"route.openshift.io"}'
-            - '--skip-auth-regex=''(^/health|^/docs)'''
+            - '--skip-auth-regex=''(^/v1/health|^/docs)'''
       volumes:
         - name: proxy-tls
           secret:

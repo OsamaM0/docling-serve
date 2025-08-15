@@ -192,7 +192,7 @@ docker-compose -f docker-compose.gpu.yml restart docling-serve-gpu
 
 ```bash
 # Check service health
-curl http://localhost:5001/health
+curl http://localhost:5001/v1/health
 
 # Check with deployment script
 ./deploy.sh test

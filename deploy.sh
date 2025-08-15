@@ -77,7 +77,7 @@ deploy_development() {
     sleep 30
     
     # Health check
-    if curl -f http://localhost:5001/health > /dev/null 2>&1; then
+    if curl -f http://localhost:5001/v1/health > /dev/null 2>&1; then
         log_success "Development deployment successful!"
         log_info "Services available at:"
         echo "  - API: http://localhost:5001"
@@ -99,7 +99,7 @@ deploy_production() {
     sleep 60
     
     # Health check
-    if curl -f http://localhost/health > /dev/null 2>&1; then
+    if curl -f http://localhost/v1/health > /dev/null 2>&1; then
         log_success "Production deployment successful!"
         log_info "Services available at:"
         echo "  - Main site: http://localhost"
@@ -141,7 +141,7 @@ run_tests() {
     log_info "Running health tests..."
     
     # Test API endpoint
-    if curl -f http://localhost:5001/health > /dev/null 2>&1; then
+    if curl -f http://localhost:5001/v1/health > /dev/null 2>&1; then
         log_success "✓ Health check passed"
     else
         log_error "✗ Health check failed"

@@ -71,7 +71,7 @@ async def test_convert_url(async_client):
     "picture_description_local": '{"repo_id": "ds4sd/SmolDocling-256M-preview", "prompt": "Describe this image in a few sentences.", "generation_config": {"max_new_tokens": 200, "do_sample": false}}'
   }
 
-    file_path = Path(__file__).parent / "2206.01062v1.pdf"
+    file_path = Path("C:/Users/Osama Mo/Documents/n2.pdf") #Path(__file__).parent / "2206.01062v1.pdf"
     files = {
         "files": (file_path.name, file_path.open("rb"), "application/pdf"),
     }

@@ -146,7 +146,7 @@ def get_ssl_context() -> ssl.SSLContext:
 
 
 def health_check():
-    response = httpx.get(f"{get_api_endpoint()}/health")
+    response = httpx.get(f"{get_api_endpoint()}/v1/health")
     if response.status_code == 200:
         return "Healthy"
     return "Unhealthy"

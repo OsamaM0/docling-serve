@@ -95,7 +95,7 @@ function Deploy-Development {
     
     # Health check
     try {
-        Invoke-RestMethod -Uri "http://localhost:5001/health" -Method Get | Out-Null
+        Invoke-RestMethod -Uri "http://localhost:5001/v1/health" -Method Get | Out-Null
         Write-Success "Development deployment successful!"
         Write-Info "Services available at:"
         Write-Host "  - API: http://localhost:5001"
@@ -119,7 +119,7 @@ function Deploy-Production {
     
     # Health check
     try {
-        Invoke-RestMethod -Uri "http://localhost/health" -Method Get | Out-Null
+        Invoke-RestMethod -Uri "http://localhost/v1/health" -Method Get | Out-Null
         Write-Success "Production deployment successful!"
         Write-Info "Services available at:"
         Write-Host "  - Main site: http://localhost"
@@ -170,7 +170,7 @@ function Test-Services {
     
     # Test API endpoint
     try {
-        Invoke-RestMethod -Uri "http://localhost:5001/health" -Method Get | Out-Null
+        Invoke-RestMethod -Uri "http://localhost:5001/v1/health" -Method Get | Out-Null
         Write-Success "✓ Health check passed"
         $testsPassed++
     }

@@ -403,7 +403,7 @@ def create_app():  # noqa: C901
         response = RedirectResponse(url=logo_url)
         return response
 
-    @app.get("/health")
+    @app.get("/v1/health")
     def health() -> HealthCheckResponse:
         return HealthCheckResponse()
 

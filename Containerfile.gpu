@@ -5,7 +5,7 @@ ARG UBUNTU_VERSION=22.04
 ARG BASE_IMAGE=nvidia/cuda:${CUDA_VERSION}-cudnn-devel-ubuntu${UBUNTU_VERSION}
 
 ARG UV_VERSION=0.8.3
-ARG UV_SYNC_EXTRA_ARGS=""
+ARG UV_SYNC_EXTRA_ARGS="--group cu128 --extra ui --extra easyocr"
 
 FROM ${BASE_IMAGE} AS docling-gpu-base
 
@@ -17,7 +17,7 @@ FROM ${BASE_IMAGE} AS docling-gpu-base
 USER root
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install basic dependencies
+# Install basic dependencies and GPG keys
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
@@ -25,15 +25,21 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     software-properties-common \
+    ca-certificates \
+    gnupg \
+    lsb-release \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python 3.12
-RUN add-apt-repository ppa:deadsnakes/ppa && \
+# Install Python 3.12 with manual GPG key handling (more robust)
+RUN apt-get update && \
+    curl -fsSL https://keyserver.ubuntu.com/pks/lookup?op=get\&search=0xF23C5A6CF475977595C89F51BA6932366A755776 | gpg --dearmor -o /usr/share/keyrings/deadsnakes.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/deadsnakes.gpg] https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu jammy main" > /etc/apt/sources.list.d/deadsnakes.list && \
     apt-get update && \
     apt-get install -y \
     python3.12 \
     python3.12-dev \
     python3.12-distutils \
+    python3.12-venv \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
@@ -113,7 +119,7 @@ ENV \
     NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-ARG UV_SYNC_EXTRA_ARGS
+ARG UV_SYNC_EXTRA_ARGS="--group cu128 --extra ui --extra easyocr"
 
 # Install Python dependencies with GPU, UI, and EasyOCR support
 RUN --mount=from=uv_stage,source=/uv,target=/bin/uv \
@@ -159,7 +165,7 @@ RUN mkdir -p /opt/app-root/src/logs /opt/app-root/src/data && \
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:5001/health || exit 1
+    CMD curl -f http://localhost:5001/v1/health || exit 1
 
 # Expose port
 EXPOSE 5001
