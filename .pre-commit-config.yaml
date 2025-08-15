@@ -1,0 +1,39 @@
+fail_fast: true
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.6
+    hooks:
+      # Run the Ruff formatter.
+      - id: ruff-format
+        name: "Ruff formatter"
+        args: [--config=pyproject.toml]
+        files: '^(docling_serve|tests).*\.(py|ipynb)$'
+      # Run the Ruff linter.
+      - id: ruff
+        name: "Ruff linter"
+        args: [--exit-non-zero-on-fix, --fix, --config=pyproject.toml]
+        files: '^(docling_serve|tests).*\.(py|ipynb)$'
+  - repo: local
+    hooks:
+      - id: system
+        name: MyPy
+        entry: uv run --no-sync mypy docling_serve
+        pass_filenames: false
+        language: system
+        files: '\.py$'
+  - repo: https://github.com/errata-ai/vale
+    rev: v3.12.0  # Use latest stable version
+    hooks:
+      - id: vale
+        name: vale sync
+        pass_filenames: false
+        args: [sync, "--config=.github/vale.ini"]
+      - id: vale
+        name: Spell and Style Check with Vale
+        args: ["--config=.github/vale.ini"]
+        files: \.md$
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    # uv version, https://github.com/astral-sh/uv-pre-commit/releases
+    rev: 0.8.3
+    hooks:
+      - id: uv-lock
