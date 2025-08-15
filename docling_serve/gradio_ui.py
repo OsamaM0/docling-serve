@@ -316,6 +316,13 @@ def process_url(
     do_formula_enrichment,
     do_picture_classification,
     do_picture_description,
+    picture_description_area_threshold,
+    picture_description_local,
+    include_images,
+    images_scale,
+    do_table_structure,
+    table_cell_matching,
+    md_page_break_placeholder,
     enable_advanced_formula_enrichment,
     enable_character_encoding_fix,
 ):
@@ -328,7 +335,7 @@ def process_url(
             "to_formats": to_formats,
             "image_export_mode": image_export_mode,
             "pipeline": pipeline,
-            "ocr": ocr,
+            "do_ocr": ocr,
             "force_ocr": force_ocr,
             "ocr_engine": ocr_engine,
             "ocr_lang": _to_list_of_strings(ocr_lang),
@@ -339,11 +346,26 @@ def process_url(
             "do_formula_enrichment": do_formula_enrichment,
             "do_picture_classification": do_picture_classification,
             "do_picture_description": do_picture_description,
+            "do_table_structure": do_table_structure,
+            "include_images": include_images,
+            "images_scale": images_scale,
+            "table_cell_matching": table_cell_matching,
+            "md_page_break_placeholder": md_page_break_placeholder,
             "enable_advanced_formula_enrichment": enable_advanced_formula_enrichment,
             "enable_character_encoding_fix": enable_character_encoding_fix,
         },
         "target": target,
     }
+    
+    # Add picture description specific options when enabled
+    if do_picture_description:
+        if picture_description_area_threshold is not None:
+            parameters["options"]["picture_description_area_threshold"] = float(picture_description_area_threshold)
+        if picture_description_local:
+            try:
+                parameters["options"]["picture_description_local"] = json.loads(picture_description_local)
+            except Exception as e:
+                raise gr.Error(f"Invalid picture_description_local JSON: {e}", print_exception=False)
     if (
         not parameters["sources"]
         or len(parameters["sources"]) == 0
@@ -403,6 +425,13 @@ def process_file(
     do_formula_enrichment,
     do_picture_classification,
     do_picture_description,
+    picture_description_area_threshold,
+    picture_description_local,
+    include_images,
+    images_scale,
+    do_table_structure,
+    table_cell_matching,
+    md_page_break_placeholder,
     enable_advanced_formula_enrichment,
     enable_character_encoding_fix,
 ):
@@ -421,7 +450,7 @@ def process_file(
             "to_formats": to_formats,
             "image_export_mode": image_export_mode,
             "pipeline": pipeline,
-            "ocr": ocr,
+            "do_ocr": ocr,
             "force_ocr": force_ocr,
             "ocr_engine": ocr_engine,
             "ocr_lang": _to_list_of_strings(ocr_lang),
@@ -433,11 +462,26 @@ def process_file(
             "do_formula_enrichment": do_formula_enrichment,
             "do_picture_classification": do_picture_classification,
             "do_picture_description": do_picture_description,
+            "do_table_structure": do_table_structure,
+            "include_images": include_images,
+            "images_scale": images_scale,
+            "table_cell_matching": table_cell_matching,
+            "md_page_break_placeholder": md_page_break_placeholder,
             "enable_advanced_formula_enrichment": enable_advanced_formula_enrichment,
             "enable_character_encoding_fix": enable_character_encoding_fix,
         },
         "target": target,
     }
+
+    # Add picture description specific options when enabled
+    if do_picture_description:
+        if picture_description_area_threshold is not None:
+            parameters["options"]["picture_description_area_threshold"] = float(picture_description_area_threshold)
+        if picture_description_local:
+            try:
+                parameters["options"]["picture_description_local"] = json.loads(picture_description_local)
+            except Exception as e:
+                raise gr.Error(f"Invalid picture_description_local JSON: {e}", print_exception=False)
 
     headers = {}
     if docling_serve_settings.api_key:
@@ -705,6 +749,58 @@ with gr.Blocks(
                 do_picture_description = gr.Checkbox(
                     label="Enable picture description", value=False
                 )
+                # Picture description specific options (conditional)
+                picture_description_area_threshold = gr.Number(
+                    label="Picture description area threshold",
+                    value=0.05,
+                    precision=4,
+                    visible=False,
+                    info="Minimum percentage (0-1) of page area for a picture to be described.",
+                )
+                picture_description_local = gr.Textbox(
+                    label="Picture description local (JSON)",
+                    value='{"repo_id": "ds4sd/SmolDocling-256M-preview", "prompt": "Describe this image in a few sentences.", "generation_config": {"max_new_tokens": 200, "do_sample": false}}',
+                    lines=4,
+                    visible=False,
+                )
+                # Additional options from test config
+                include_images = gr.Checkbox(
+                    label="Include images", value=True, visible=False
+                )
+                images_scale = gr.Number(
+                    label="Images scale", value=2, visible=False
+                )
+                do_table_structure = gr.Checkbox(
+                    label="Do table structure", value=True
+                )
+                table_cell_matching = gr.Checkbox(
+                    label="Table cell matching", value=True
+                )
+                md_page_break_placeholder = gr.Textbox(
+                    label="Markdown page break placeholder", value=""
+                )
+
+        # Function to toggle picture description fields visibility
+        def toggle_picture_description_fields(do_picture_description):
+            visible = bool(do_picture_description)
+            return (
+                gr.update(visible=visible),  # picture_description_area_threshold
+                gr.update(visible=visible),  # picture_description_local
+                gr.update(visible=visible),  # include_images
+                gr.update(visible=visible),  # images_scale
+            )
+
+        # Connect the toggle function to the checkbox
+        do_picture_description.change(
+            toggle_picture_description_fields,
+            inputs=[do_picture_description],
+            outputs=[
+                picture_description_area_threshold,
+                picture_description_local,
+                include_images,
+                images_scale,
+            ],
+        )
 
     # Task id output
     with gr.Row(visible=False) as task_id_output:
@@ -799,6 +895,13 @@ with gr.Blocks(
             do_formula_enrichment,
             do_picture_classification,
             do_picture_description,
+            picture_description_area_threshold,
+            picture_description_local,
+            include_images,
+            images_scale,
+            do_table_structure,
+            table_cell_matching,
+            md_page_break_placeholder,
             enable_advanced_formula_enrichment,
             enable_character_encoding_fix,
         ],
@@ -889,6 +992,13 @@ with gr.Blocks(
             do_formula_enrichment,
             do_picture_classification,
             do_picture_description,
+            picture_description_area_threshold,
+            picture_description_local,
+            include_images,
+            images_scale,
+            do_table_structure,
+            table_cell_matching,
+            md_page_break_placeholder,
             enable_advanced_formula_enrichment,
             enable_character_encoding_fix,
         ],
