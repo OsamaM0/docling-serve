@@ -693,10 +693,10 @@ with gr.Blocks(
                     label="Enable formula enrichment", value=False
                 )
                 enable_advanced_formula_enrichment = gr.Checkbox(
-                    label="Enable advanced formula enrichment", value=False
+                    label="Enable advanced formula enrichment", value=True
                 )
                 enable_character_encoding_fix = gr.Checkbox(
-                    label="Enable character encoding fix", value=False
+                    label="Enable character encoding fix", value=True
                 )
             with gr.Column():
                 do_picture_classification = gr.Checkbox(

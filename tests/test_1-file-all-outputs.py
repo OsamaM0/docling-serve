@@ -22,33 +22,59 @@ async def async_client():
 async def test_convert_file(async_client):
     """Test convert single file to all outputs"""
     url = "http://localhost:5001/v1/convert/file"
-    options = {
-        "from_formats": [
-            "docx",
-            "pptx",
-            "html",
-            "image",
-            "pdf",
-            "asciidoc",
-            "md",
-            "xlsx",
-        ],
-        "to_formats": ["md", "json", "html", "text", "doctags"],
-        "image_export_mode": "placeholder",
-        "ocr": True,
-        "force_ocr": False,
-        "ocr_engine": "easyocr",
-        "ocr_lang": ["en"],
-        "pdf_backend": "dlparse_v2",
-        "table_mode": "fast",
-        "abort_on_error": False,
-    }
+    options =  {
+      "from_formats": [
+      "docx",
+      "pptx",
+      "html",
+      "image",
+      "pdf",
+      "asciidoc",
+      "md",
+      "csv",
+      "xlsx",
+      "xml_uspto",
+      "xml_jats",
+      "json_docling",
+      "audio"
+    ],
+    "to_formats": [
+      "md",
+      "json"
+    ],
+    "image_export_mode": "embedded",
+    "do_ocr": True,
+    "force_ocr": False,
+    "ocr_engine": "easyocr",
+    "pdf_backend": "dlparse_v4",
+    "table_mode": "accurate",
+    "table_cell_matching": True,
+    "pipeline": "standard",
+    "page_range": [
+      1,
+      9223372036854776000
+    ],
+    "document_timeout": 604800,
+    "abort_on_error": False,
+    "do_table_structure": True,
+    "include_images": True,
+    "images_scale": 2,
+    "md_page_break_placeholder": "",
+    "do_code_enrichment": True,
+    "do_formula_enrichment": True,
+    "do_picture_classification": True,
+    "do_picture_description": True,
+    "picture_description_area_threshold": 0.05,
+    "enable_advanced_formula_enrichment": True,
+    "enable_character_encoding_fix": True,
+    "picture_description_local": '{"repo_id": "ds4sd/SmolDocling-256M-preview", "prompt": "Describe this image in a few sentences.", "generation_config": {"max_new_tokens": 200, "do_sample": false}}'
+  }
 
     current_dir = os.path.dirname(__file__)
-    file_path = os.path.join(current_dir, "2206.01062v1.pdf")
+    file_path = r"C:\Users\Osama Mo\Documents\n2.pdf"  # os.path.join(current_dir, r"C:\Users\Osama Mo\Documents\n2.pdf")
 
     files = {
-        "files": ("2206.01062v1.pdf", open(file_path, "rb"), "application/pdf"),
+        "files": ("n2.pdf", open(file_path, "rb"), "application/pdf"),
     }
 
     response = await async_client.post(url, files=files, data=options)
