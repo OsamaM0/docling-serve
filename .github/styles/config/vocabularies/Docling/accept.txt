@@ -5,8 +5,6 @@ async
 (?i)urls
 uvicorn
 [Ww]ebserver
-RQ
-(?i)url
 keyfile
 [Ww]ebsocket(s?)
 [Kk]ubernetes
@@ -24,7 +22,6 @@ Kubeflow
 (?i)ROCm
 (?i)env
 Gradio
-Podman
 bool
 Ollama
 inbody

@@ -5,6 +5,7 @@
 - Maxim Lysak - [`@maxmnemonic`](https://github.com/maxmnemonic)
 - Nikos Livathinos - [`@nikos-livathinos`](https://github.com/nikos-livathinos)
 - Ahmed Nassar - [`@nassarofficial`](https://github.com/nassarofficial)
+- Osama Mohamed - [`@OsamaM0`](https://github.com/OsamaM0)
 - Panos Vagenas - [`@vagenas`](https://github.com/vagenas)
 - Peter Staar - [`@PeterStaar-IBM`](https://github.com/PeterStaar-IBM)
 
