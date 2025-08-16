@@ -45,25 +45,20 @@ ENV \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/opt/app-root \
-    DOCLING_SERVE_ARTIFACTS_PATH=/opt/app-root/src/.cache/docling/models \
-    HF_HOME=/opt/app-root/src/.cache/huggingface \
-    TRANSFORMERS_CACHE=/opt/app-root/src/.cache/huggingface/transformers \
-    HUGGINGFACE_HUB_CACHE=/opt/app-root/src/.cache/huggingface/hub \
-    DOCLING_SERVE_ENABLE_UI=1
+    DOCLING_SERVE_ARTIFACTS_PATH=/opt/app-root/src/.cache/docling/models
 
-ARG UV_SYNC_EXTRA_ARGS
+ARG UV_SYNC_EXTRA_ARGS="--group cu128 --extra ui --extra easyocr"
 
 RUN --mount=from=uv_stage,source=/uv,target=/bin/uv \
-    --mount=type=cache,target=/tmp/uv-cache,uid=1001 \
-    --mount=type=bind,source=uv.lock,target=/tmp/project/uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=/tmp/project/pyproject.toml \
-    mkdir -p /tmp/project && cd /tmp/project && umask 002 && \
-    UV_SYNC_ARGS="--frozen --no-install-project --no-dev" && \
-    /bin/uv sync ${UV_SYNC_ARGS} --extra ui --extra easyocr --no-extra flash-attn && \
-    FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE /bin/uv sync ${UV_SYNC_ARGS} --extra ui --extra easyocr --no-build-isolation-package=flash-attn && \
-    chown -R 1001:0 /opt/app-root && chmod -R g+w /opt/app-root
+    --mount=type=cache,target=/opt/app-root/src/.cache/uv,uid=1001 \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    umask 002 && \
+    UV_SYNC_ARGS="--frozen --no-install-project --no-dev --all-extras" && \
+    uv sync ${UV_SYNC_ARGS} ${UV_SYNC_EXTRA_ARGS} --no-extra flash-attn && \
+    FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE uv sync ${UV_SYNC_ARGS} ${UV_SYNC_EXTRA_ARGS} --no-build-isolation-package=flash-attn
 
-ARG MODELS_LIST="layout tableformer picture_classifier easyocr code_formula smoldocling"
+ARG MODELS_LIST="layout tableformer picture_classifier easyocr  code_formula "
 
 RUN echo "Downloading models..." && \
     HF_HUB_DOWNLOAD_TIMEOUT="90" \
@@ -78,8 +73,8 @@ RUN --mount=from=uv_stage,source=/uv,target=/bin/uv \
     --mount=type=cache,target=/opt/app-root/src/.cache/uv,uid=1001 \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    umask 002 && /bin/uv sync --frozen --no-dev --extra ui --extra easyocr ${UV_SYNC_EXTRA_ARGS}
+    umask 002 && uv sync --frozen --no-dev --all-extras ${UV_SYNC_EXTRA_ARGS}
 
 EXPOSE 5001
 
-CMD ["docling-serve", "run", "--enable-ui"]
+CMD ["docling-serve", "run"]

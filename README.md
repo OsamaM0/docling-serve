@@ -18,9 +18,6 @@ Running [Docling](https://github.com/docling-project/docling) as an API service.
 > [!NOTE]
 > **Migration to the `v1` API.** Docling Serve now has a stable v1 API. Read more on the [migration to v1](./docs/v1_migration.md).
 
-> [!INFO]
-> **Arabic Language Support.** This version includes enhanced Arabic language support and custom document enhancement features developed by Osama Mohamed.
-
 ## Getting started
 
 Install the `docling-serve` package and run the server.
@@ -39,6 +36,7 @@ The server is available at
 - API <http://127.0.0.1:5001>
 - API documentation <http://127.0.0.1:5001/docs>
 - UI playground <http://127.0.0.1:5001/ui>
+
 ![API documentation](img/fastapi-ui.png)
 
 Try it out with a simple conversion:
@@ -122,27 +120,3 @@ The Docling Serve codebase is under MIT license.
 ## IBM ❤️ Open Source AI
 
 Docling has been brought to you by IBM.
-
-## GPU / Performance Tuning
-
-This fork adds optional environment variables to make GPU usage more predictable:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DOCLING_SERVE_LIMIT_GPU_MEM_FRACTION` | Caps per-process GPU memory fraction (0.0 < f ≤ 1.0) | `0.5` |
-| `DOCLING_SERVE_LOG_GPU_MEMORY` | Enable periodic GPU memory logging | `true` |
-| `DOCLING_SERVE_GPU_MEMORY_LOG_INTERVAL` | Interval (seconds) for memory logging | `30` |
-| `DOCLING_SERVE_TORCH_MATMUL_PRECISION` | Torch matmul precision (`high|medium|low`) | `medium` |
-| `DOCLING_SERVE_TORCH_DEFAULT_DTYPE` | Set default dtype (`float16|bfloat16|float32`) | `bfloat16` |
-| `DOCLING_SERVE_DISABLE_MODEL_WARMUP` | Skip model warm-up phase on startup | `true` |
-
-Example (PowerShell):
-
-```powershell
-$env:DOCLING_SERVE_LIMIT_GPU_MEM_FRACTION = 0.6
-$env:DOCLING_SERVE_TORCH_MATMUL_PRECISION = 'medium'
-$env:DOCLING_SERVE_LOG_GPU_MEMORY = 'true'
-docling-serve run
-```
-
-All settings are best-effort: if CUDA or features are unavailable they are silently ignored.

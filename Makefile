@@ -39,13 +39,6 @@ docling-serve-cpu-image: Containerfile ## Build docling-serve "cpu only" contain
 	$(CMD_PREFIX) docker tag ghcr.io/docling-project/docling-serve-cpu:$(TAG) ghcr.io/docling-project/docling-serve-cpu:$(BRANCH_TAG)
 	$(CMD_PREFIX) docker tag ghcr.io/docling-project/docling-serve-cpu:$(TAG) quay.io/docling-project/docling-serve-cpu:$(BRANCH_TAG)
 
-.PHONY: docling-serve-cu124-image
-docling-serve-cu124-image: Containerfile ## Build docling-serve container image with CUDA 12.4 support
-	$(ECHO_PREFIX) printf "  %-12s Containerfile\n" "[docling-serve with Cuda 12.4]"
-	$(CMD_PREFIX) docker build --load --build-arg "UV_SYNC_EXTRA_ARGS=--no-group pypi --group cu124" -f Containerfile --platform linux/amd64 -t ghcr.io/docling-project/docling-serve-cu124:$(TAG) .
-	$(CMD_PREFIX) docker tag ghcr.io/docling-project/docling-serve-cu124:$(TAG) ghcr.io/docling-project/docling-serve-cu124:$(BRANCH_TAG)
-	$(CMD_PREFIX) docker tag ghcr.io/docling-project/docling-serve-cu124:$(TAG) quay.io/docling-project/docling-serve-cu124:$(BRANCH_TAG)
-
 .PHONY: docling-serve-cu126-image
 docling-serve-cu126-image: Containerfile ## Build docling-serve container image with CUDA 12.6 support
 	$(ECHO_PREFIX) printf "  %-12s Containerfile\n" "[docling-serve with Cuda 12.6]"
@@ -107,13 +100,6 @@ run-docling-cpu: ## Run the docling-serve container with CPU support and assign 
 	$(CMD_PREFIX) docker rm -f docling-serve-cpu 2>/dev/null || true
 	$(ECHO_PREFIX) printf "  %-12s Running docling-serve container with CPU support on port 5001...\n" "[RUN CPU]"
 	$(CMD_PREFIX) docker run -it --name docling-serve-cpu -p 5001:5001 ghcr.io/docling-project/docling-serve-cpu:main
-
-.PHONY: run-docling-cu124
-run-docling-cu124: ## Run the docling-serve container with GPU support and assign a container name
-	$(ECHO_PREFIX) printf "  %-12s Removing existing container if it exists...\n" "[CLEANUP]"
-	$(CMD_PREFIX) docker rm -f docling-serve-cu124 2>/dev/null || true
-	$(ECHO_PREFIX) printf "  %-12s Running docling-serve container with GPU support on port 5001...\n" "[RUN CUDA 12.4]"
-	$(CMD_PREFIX) docker run -it --name docling-serve-cu124 -p 5001:5001 ghcr.io/docling-project/docling-serve-cu124:main
 
 .PHONY: run-docling-cu126
 run-docling-cu126: ## Run the docling-serve container with GPU support and assign a container name

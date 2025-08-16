@@ -46,9 +46,7 @@ dependencies = [
     "websockets~=14.0",
     "scalar-fastapi>=1.0.3",
     "docling-mcp>=1.0.0",
-    "surya-ocr>=0.15.0",
-    "openai>=1.0.0",
-    "runpod>=1.6.0",
+  "surya-ocr==0.15.4",
 ]
 
 [project.optional-dependencies]
@@ -62,10 +60,6 @@ tesserocr = [
 rapidocr = [
     "rapidocr-onnxruntime~=1.4; python_version<'3.13'",
     "onnxruntime~=1.7",
-]
-easyocr = [
-    "easyocr~=1.7",
-    "opencv-python>=4.5.0",
 ]
 flash-attn = [
   "flash-attn~=2.8.2; sys_platform == 'linux' and platform_machine == 'x86_64'"
@@ -85,33 +79,37 @@ dev = [
 
 pypi = [
   "torch>=2.7.1",
+  "torchvision>=0.22.1",
 ]
 
 cpu = [
   "torch>=2.7.1",
+  "torchvision>=0.22.1",
 ]
 
 cu126 = [
   "torch>=2.7.1 ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version < '3.13'",
+  "torchvision>=0.22.1 ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version < '3.13'",
 ]
 
 cu128 = [
   "torch>=2.7.1 ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version < '3.13'",
+  "torchvision>=0.22.1 ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version < '3.13'",
 ]
 
 rocm = [
   "torch>=2.7.1 ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version < '3.13'",
+  "torchvision>=0.22.1 ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version < '3.13'",
   "pytorch-triton-rocm>=3.3.1 ; sys_platform == 'linux' and platform_machine == 'x86_64' and python_version < '3.13'",
 ]
 
 [tool.uv]
 package = true
-default-groups = ["dev", "cu128"]
+default-groups = ["dev", "pypi"]
 conflicts = [
   [
     { group = "pypi" },
     { group = "cpu" },
-    { group = "cu124" },
     { group = "cu126" },
     { group = "cu128" },
     { group = "rocm" },
@@ -124,7 +122,17 @@ override-dependencies = [
 
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-pypi" },
+  { index = "pytorch-cpu", group = "cpu" },
+  { index = "pytorch-cu126", group = "cu126", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-cu128", group = "cu128", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-rocm", group = "rocm", marker = "sys_platform == 'linux'" },
+]
+
+torchvision = [
+  { index = "pytorch-cpu", group = "cpu" },
+  { index = "pytorch-cu126", group = "cu126", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-cu128", group = "cu128", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-rocm", group = "rocm", marker = "sys_platform == 'linux'" },
 ]
 
 pytorch-triton-rocm = [
@@ -133,11 +141,6 @@ pytorch-triton-rocm = [
 
 # docling-jobkit = { git = "https://github.com/docling-project/docling-jobkit/", rev = "main" }
 # docling-jobkit = { path = "../docling-jobkit", editable = true }
-
-[[tool.uv.index]]
-name = "pytorch-pypi"
-url = "https://pypi.org/simple"
-explicit = true
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

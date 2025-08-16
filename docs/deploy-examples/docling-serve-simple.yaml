@@ -55,4 +55,4 @@ spec:
               containerPort: 5001
               protocol: TCP
           imagePullPolicy: Always
-          image: 'ghcr.io/docling-project/docling-serve-cu124'
+          image: 'ghcr.io/docling-project/docling-serve-cu128'

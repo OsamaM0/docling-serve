@@ -21,7 +21,6 @@ repos:
         pass_filenames: false
         language: system
         files: '\.py$'
-        
   - repo: https://github.com/errata-ai/vale
     rev: v3.12.0  # Use latest stable version
     hooks:
