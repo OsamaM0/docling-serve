@@ -138,7 +138,12 @@ COPY --chown=appuser:appuser ./docling_serve ./docling_serve
 RUN umask 002 && mkdir -p "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && chmod -R g+rwX "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
 
 # Download selected pre-trained models (extend MODELS_LIST via build arg if needed)
-ARG MODELS_LIST="layout tableformer picture_classifier code_formula"
+# Added 'easyocr' so the CRAFT detector weights (craft_mlt_25k.pth) are baked into the image.
+# Without this, the service fails at startup with:
+#   FileNotFoundError: Missing .../EasyOcr/craft_mlt_25k.pth and downloads disabled
+# If you prefer a slimmer image and will mount models or allow runtime downloads, override at build:
+#   --build-arg MODELS_LIST="layout tableformer picture_classifier code_formula"
+ARG MODELS_LIST="layout tableformer picture_classifier code_formula easyocr"
 RUN echo "Downloading AI models..." && \
     HF_HUB_DOWNLOAD_TIMEOUT="180" \
     HF_HUB_ETAG_TIMEOUT="180" \
