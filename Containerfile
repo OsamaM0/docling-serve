@@ -47,7 +47,7 @@ ENV \
     UV_PROJECT_ENVIRONMENT=/opt/app-root \
     DOCLING_SERVE_ARTIFACTS_PATH=/opt/app-root/src/.cache/docling/models
 
-ARG UV_SYNC_EXTRA_ARGS="--group cu128 --extra ui --extra easyocr"
+ARG UV_SYNC_EXTRA_ARGS
 
 RUN --mount=from=uv_stage,source=/uv,target=/bin/uv \
     --mount=type=cache,target=/opt/app-root/src/.cache/uv,uid=1001 \
@@ -58,7 +58,7 @@ RUN --mount=from=uv_stage,source=/uv,target=/bin/uv \
     uv sync ${UV_SYNC_ARGS} ${UV_SYNC_EXTRA_ARGS} --no-extra flash-attn && \
     FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE uv sync ${UV_SYNC_ARGS} ${UV_SYNC_EXTRA_ARGS} --no-build-isolation-package=flash-attn
 
-ARG MODELS_LIST="layout tableformer picture_classifier easyocr  code_formula "
+ARG MODELS_LIST="layout tableformer picture_classifier easyocr"
 
 RUN echo "Downloading models..." && \
     HF_HUB_DOWNLOAD_TIMEOUT="90" \
