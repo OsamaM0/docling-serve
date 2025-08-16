@@ -5,9 +5,11 @@ ARG UBUNTU_VERSION=22.04
 ARG BASE_IMAGE=nvidia/cuda:${CUDA_VERSION}-cudnn-devel-ubuntu${UBUNTU_VERSION}
 
 ARG UV_VERSION=0.8.3
-ARG UV_SYNC_EXTRA_ARGS="--no-default-groups --group cu128 --extra ui"
 
 FROM ${BASE_IMAGE} AS docling-gpu-base
+
+# All sync options are baked in; serverless builders pass no extra build args
+ENV UV_SYNC_EXTRA_ARGS="--no-default-groups --group cu128 --extra ui"
 
 ###################################################################################################
 # OS Layer - Base GPU dependencies (CUDA, Tesseract, fonts, imaging libs)                        #
@@ -27,15 +29,16 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python 3.12
-RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y \
-    python3.12 \
-    python3.12-dev \
-    python3.12-distutils \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+# Install Python 3.12 (optional; remove this block to use system Python 3.10)
+RUN add-apt-repository -y ppa:deadsnakes/ppa && \
+        apt-get update && \
+        apt-get install -y \
+            python3.12 \
+            python3.12-dev \
+            python3.12-venv \
+        && python3.12 -m ensurepip --upgrade && \
+        python3.12 -m pip install --no-cache-dir --upgrade pip setuptools wheel && \
+        rm -rf /var/lib/apt/lists/*
 
 # Create symbolic links for python
 RUN ln -sf /usr/bin/python3.12 /usr/bin/python3 && \
@@ -113,18 +116,13 @@ ENV \
     NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-ARG UV_SYNC_EXTRA_ARGS="--no-default-groups --group cu128 --extra ui"
+ENV UV_SYNC_EXTRA_ARGS="--no-default-groups --group cu128 --extra ui"
 
-# Install Python dependencies (GPU group cu128 + UI extra). We skip default groups to avoid
-# uv group conflict (pypi vs cu128) declared in pyproject.
-RUN --mount=from=uv_stage,source=/uv,target=/bin/uv \
-    --mount=type=cache,target=/tmp/uv-cache,uid=1001 \
-    --mount=type=bind,source=uv.lock,target=/tmp/project/uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=/tmp/project/pyproject.toml \
-    mkdir -p /tmp/project && cd /tmp/project && umask 002 && \
-    UV_SYNC_ARGS="--frozen --no-install-project --no-dev" && \
-    # Install only cu128 + ui (no default groups to avoid pypi conflict); skip flash-attn unless explicitly wanted
-    /bin/uv sync ${UV_SYNC_ARGS} --no-default-groups --group cu128 --extra ui --no-extra flash-attn && \
+# Copy uv binary (no BuildKit mount) and project metadata, then install deps.
+COPY --from=uv_stage /uv /bin/uv
+COPY pyproject.toml uv.lock ./
+RUN umask 002 && \
+    /bin/uv sync --frozen --no-install-project --no-dev --no-default-groups --group cu128 --extra ui --no-extra flash-attn && \
     chown -R appuser:appuser /opt/app-root && chmod -R g+w /opt/app-root
 
 # Download selected pre-trained models (extend MODELS_LIST via build arg if needed)
@@ -139,15 +137,11 @@ RUN echo "Downloading AI models..." && \
 
 # (Optional) Add an OCR engine warm-up step (e.g. easyocr, tesserocr) if needed later.
 
-# Copy application code
+ # Copy application code (after dependency layer for better caching)
 COPY --chown=appuser:appuser ./docling_serve ./docling_serve
 
-# Install the application
-RUN --mount=from=uv_stage,source=/uv,target=/bin/uv \
-    --mount=type=cache,target=/opt/app-root/src/.cache/uv,uid=1001 \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    umask 002 && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
+# Install the application (project itself)
+RUN umask 002 && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
 
 # Create directories for logs and cache
 RUN mkdir -p /opt/app-root/src/logs /opt/app-root/src/data && \
