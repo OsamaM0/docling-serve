@@ -119,6 +119,8 @@ ENV \
     HOME=/home/appuser \
     XDG_CACHE_HOME=/opt/app-root/src/.cache \
     UV_CACHE_DIR=/opt/app-root/src/.cache/uv
+    # Ensure venv scripts (including docling-tools) are on PATH
+ENV PATH="/opt/app-root/src/.venv/bin:${PATH}"
 
 ENV UV_SYNC_EXTRA_ARGS="--no-default-groups --group cu128 --extra ui"
 
@@ -129,9 +131,14 @@ RUN umask 002 && \
     mkdir -p "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && chmod -R g+rwX "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && \
     /bin/uv sync --frozen --no-install-project --no-dev --no-default-groups --group cu128 --extra ui --no-extra flash-attn
 
+ # Copy application code (after dependency layer for better caching)
+COPY --chown=appuser:appuser ./docling_serve ./docling_serve
+
+# Install the application (project itself)
+RUN umask 002 && mkdir -p "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && chmod -R g+rwX "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
+
 # Download selected pre-trained models (extend MODELS_LIST via build arg if needed)
 ARG MODELS_LIST="layout tableformer picture_classifier code_formula"
-
 RUN echo "Downloading AI models..." && \
     HF_HUB_DOWNLOAD_TIMEOUT="180" \
     HF_HUB_ETAG_TIMEOUT="180" \
@@ -139,12 +146,6 @@ RUN echo "Downloading AI models..." && \
     chmod -R g=u ${DOCLING_SERVE_ARTIFACTS_PATH}
 
 # (Optional) Add an OCR engine warm-up step (e.g. easyocr, tesserocr) if needed later.
-
- # Copy application code (after dependency layer for better caching)
-COPY --chown=appuser:appuser ./docling_serve ./docling_serve
-
-# Install the application (project itself)
-RUN umask 002 && mkdir -p "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && chmod -R g+rwX "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
 
 # Create directories for logs and cache
 RUN mkdir -p /opt/app-root/src/logs /opt/app-root/src/data
