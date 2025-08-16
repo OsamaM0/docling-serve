@@ -106,7 +106,8 @@ ENV \
     PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    UV_PROJECT_ENVIRONMENT=/opt/app-root \
+    # Use a dedicated virtual environment directory (avoid using /opt/app-root which existed and confused uv)
+    UV_PROJECT_ENVIRONMENT=/opt/app-root/src/.venv \
     DOCLING_SERVE_ARTIFACTS_PATH=/opt/app-root/src/.cache/docling/models \
     HF_HOME=/opt/app-root/src/.cache/huggingface \
     TRANSFORMERS_CACHE=/opt/app-root/src/.cache/huggingface/transformers \
@@ -125,7 +126,7 @@ ENV UV_SYNC_EXTRA_ARGS="--no-default-groups --group cu128 --extra ui"
 COPY --from=uv_stage /uv /bin/uv
 COPY pyproject.toml uv.lock ./
 RUN umask 002 && \
-    mkdir -p "$UV_CACHE_DIR" && chmod -R g+rwX "$UV_CACHE_DIR" && \
+    mkdir -p "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && chmod -R g+rwX "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && \
     /bin/uv sync --frozen --no-install-project --no-dev --no-default-groups --group cu128 --extra ui --no-extra flash-attn && \
     chown -R appuser:appuser /opt/app-root /home/appuser && chmod -R g+w /opt/app-root
 
@@ -145,7 +146,7 @@ RUN echo "Downloading AI models..." && \
 COPY --chown=appuser:appuser ./docling_serve ./docling_serve
 
 # Install the application (project itself)
-RUN umask 002 && mkdir -p "$UV_CACHE_DIR" && chmod -R g+rwX "$UV_CACHE_DIR" && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
+RUN umask 002 && mkdir -p "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && chmod -R g+rwX "$UV_CACHE_DIR" "$UV_PROJECT_ENVIRONMENT" && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
 
 # Create directories for logs and cache
 RUN mkdir -p /opt/app-root/src/logs /opt/app-root/src/data && \
