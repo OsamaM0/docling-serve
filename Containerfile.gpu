@@ -79,12 +79,12 @@ RUN apt-get update && apt-get install -y \
 # Set environment variables for Tesseract
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/5/tessdata/
 
-# Create app user
-RUN groupadd -r appuser && useradd -r -g appuser -u 1001 appuser
-
-# Create application directories
-RUN mkdir -p /opt/app-root/src/.cache/docling/models && \
-    chown -R appuser:appuser /opt/app-root
+# Create app user (with home) and required cache directories
+RUN groupadd -r appuser && useradd -r -g appuser -u 1001 -m -d /home/appuser appuser && \
+    mkdir -p /opt/app-root/src/.cache/docling/models && \
+    mkdir -p /opt/app-root/src/.cache/uv && \
+    mkdir -p /opt/app-root/src/.cache/huggingface && \
+    chown -R appuser:appuser /opt/app-root /home/appuser
 
 FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv_stage
 
@@ -114,7 +114,10 @@ ENV \
     DOCLING_SERVE_ENABLE_UI=1 \
     CUDA_VISIBLE_DEVICES=all \
     NVIDIA_VISIBLE_DEVICES=all \
-    NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+    HOME=/home/appuser \
+    XDG_CACHE_HOME=/opt/app-root/src/.cache \
+    UV_CACHE_DIR=/opt/app-root/src/.cache/uv
 
 ENV UV_SYNC_EXTRA_ARGS="--no-default-groups --group cu128 --extra ui"
 
@@ -122,8 +125,9 @@ ENV UV_SYNC_EXTRA_ARGS="--no-default-groups --group cu128 --extra ui"
 COPY --from=uv_stage /uv /bin/uv
 COPY pyproject.toml uv.lock ./
 RUN umask 002 && \
+    mkdir -p "$UV_CACHE_DIR" && chmod -R g+rwX "$UV_CACHE_DIR" && \
     /bin/uv sync --frozen --no-install-project --no-dev --no-default-groups --group cu128 --extra ui --no-extra flash-attn && \
-    chown -R appuser:appuser /opt/app-root && chmod -R g+w /opt/app-root
+    chown -R appuser:appuser /opt/app-root /home/appuser && chmod -R g+w /opt/app-root
 
 # Download selected pre-trained models (extend MODELS_LIST via build arg if needed)
 ARG MODELS_LIST="layout tableformer picture_classifier code_formula smoldocling"
@@ -141,7 +145,7 @@ RUN echo "Downloading AI models..." && \
 COPY --chown=appuser:appuser ./docling_serve ./docling_serve
 
 # Install the application (project itself)
-RUN umask 002 && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
+RUN umask 002 && mkdir -p "$UV_CACHE_DIR" && chmod -R g+rwX "$UV_CACHE_DIR" && /bin/uv sync --frozen --no-dev ${UV_SYNC_EXTRA_ARGS}
 
 # Create directories for logs and cache
 RUN mkdir -p /opt/app-root/src/logs /opt/app-root/src/data && \

@@ -58,12 +58,20 @@ RUN --mount=from=uv_stage,source=/uv,target=/bin/uv \
     uv sync ${UV_SYNC_ARGS} ${UV_SYNC_EXTRA_ARGS} --no-extra flash-attn && \
     FLASH_ATTENTION_SKIP_CUDA_BUILD=TRUE uv sync ${UV_SYNC_ARGS} ${UV_SYNC_EXTRA_ARGS} --no-build-isolation-package=flash-attn
 
-ARG MODELS_LIST="layout tableformer picture_classifier easyocr"
+# Default models to pre-download. "easyocr" removed because it forces importing torch
+# (via easyocr) during build; in this non-CUDA base image that import triggers torch
+# to look for CUDA shared libraries (libcudart/libcublas) and the build fails.
+# If you build a CUDA-enabled image, you can override at build time:
+#   --build-arg MODELS_LIST="layout tableformer picture_classifier easyocr"
+ARG MODELS_LIST="layout tableformer picture_classifier"
 
-RUN echo "Downloading models..." && \
+RUN echo "Downloading models... (MODELS_LIST='${MODELS_LIST}')" && \
     HF_HUB_DOWNLOAD_TIMEOUT="90" \
     HF_HUB_ETAG_TIMEOUT="90" \
-    docling-tools models download -o "${DOCLING_SERVE_ARTIFACTS_PATH}" ${MODELS_LIST} && \
+    # Skip easyocr during build to avoid triggering torch CUDA checks on CPU base
+    FILTERED_MODELS=$(echo ${MODELS_LIST} | tr ' ' '\n' | grep -v '^easyocr$' | tr '\n' ' ') && \
+    echo "Filtered models: ${FILTERED_MODELS}" && \
+    docling-tools models download -o "${DOCLING_SERVE_ARTIFACTS_PATH}" ${FILTERED_MODELS} && \
     chown -R 1001:0 ${DOCLING_SERVE_ARTIFACTS_PATH} && \
     chmod -R g=u ${DOCLING_SERVE_ARTIFACTS_PATH}
 
