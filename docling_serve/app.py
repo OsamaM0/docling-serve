@@ -536,14 +536,16 @@ def create_app():  # noqa: C901
                                 new_doc = processor.process_conversion_result(enhanced_result.content.json_content)
                             except Exception as e:
                                 _log.error(f"Error enhancing document (background): {e}")
-                            image_mode = "embedded"
+                            
                             if enhanced_result.content.json_content:
                                 enhanced_result.content.json_content = new_doc
                             if enhanced_result.content.html_content:
+                                image_mode = "embedded"
                                 enhanced_result.content.html_content = new_doc.export_to_html(image_mode=image_mode)
                             if enhanced_result.content.text_content:
                                 enhanced_result.content.text_content = new_doc.export_to_markdown(strict_text=True, image_mode=image_mode)
                             if enhanced_result.content.md_content:
+                                image_mode = "placeholder"
                                 enhanced_result.content.md_content = new_doc.export_to_markdown(image_mode=image_mode, page_break_placeholder=None)
                         _log.info(f"Background enhancement applied for task {task_id}")
                     except Exception as e:
