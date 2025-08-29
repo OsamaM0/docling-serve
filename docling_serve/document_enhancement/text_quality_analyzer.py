@@ -35,7 +35,7 @@ class TextQualityAnalyzer:
     def _has_encoding_issues(self, text: str) -> bool:
         """Check if text has character encoding issues."""
         # Check for known replacement characters
-        error_chars = ['', '�', '', '\x00', '\x1A', '\ufffd', '�', '�', '�','�','', '', '', '', '�', '','','', '']  # U+FFFD, U+FFFC, U+F0A4, NULL, SUB
+        error_chars = ['', '�', '', '\x00', '\x1A', '\ufffd', '�', '�', '�','�','', '', '', '', '�', '','','', '','','', '', '', '','','', '', '', '�', '']  # U+FFFD, U+FFFC, U+F0A4, NULL, SUB
         if any(char in text for char in error_chars):
             return True
 
